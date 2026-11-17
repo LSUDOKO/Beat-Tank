@@ -1,0 +1,16 @@
+[
+  {
+    "id": "VH_DECKHOUND",
+    "category": "vehicles",
+    "priority": 1,
+    "brief": "an original modern main battle tank converted into a mobile DJ sound system: low wide hull with six road wheels and rubber tracks, side skirts with built-in speaker grilles, the turret built around a twin turntable DJ deck with two large chrome-ringed speaker cones on each side, a roof LED light bar, a row of three square LED panels on the turret side showing a cyan equalizer bar, a yellow lightning bolt and a magenta star, a long cannon ending in a glowing cyan ring muzzle, matte black base paint covered in acid-green and cyan graffiti circuit-line camouflage with magenta paint splashes, subwoofer-port exhausts at the rear",
+    "styleOverride": null,
+    "character": false,
+    "refs": ["video 0:20-0:32", "behance 17", "behance 09-2", "behance 13"],
+    "steps": ["concept", "fourView", "model", "split"],
+    "model": { "version": "G1", "faceCount": 60000, "multiView": true },
+    "target": { "length": 7.5 },
+    "status": "planned",
+    "review": { "A": null, "B": null, "C": null, "D": null, "notes": "" }
+  }
+]
