@@ -9,6 +9,7 @@ export interface TankRig {
   root: THREE.Group; hull: THREE.Group; turret: THREE.Group; barrel: THREE.Group; muzzle: THREE.Object3D;
   speakers: THREE.Object3D[]; lightBar: THREE.Mesh[]; treads: THREE.Texture[]; underglow: THREE.PointLight;
   muzzleRing: THREE.MeshStandardMaterial; laserSocket: THREE.Object3D; hatch: THREE.Group;
+  barrelZ: number; // rest position of the barrel inside the turret (recoil pushes it back)
 }
 
 function treadTexture() {
@@ -35,6 +36,8 @@ function graffiti() {
 }
 
 export function buildTank(): TankRig {
+  const parts = getGLB('VH_DECKHOUND', 'parts');
+  if (parts) return buildTankFromParts(parts.scene);
   const root = new THREE.Group();
   const hull = new THREE.Group(); root.add(hull);
   const paint = std({ map: graffiti(), metalness: 0.45, roughness: 0.4 });
@@ -104,8 +107,53 @@ export function buildTank(): TankRig {
   turret.traverse((o) => { if ((o as THREE.Mesh).isMesh) o.castShadow = true; });
 
   const underglow = new THREE.PointLight('#3ee6ff', 30, 12, 1.8); underglow.position.y = 0.4; root.add(underglow);
-  return { root, hull, turret, barrel, muzzle, speakers, lightBar, treads, underglow, muzzleRing, laserSocket, hatch };
+  return { root, hull, turret, barrel, muzzle, speakers, lightBar, treads, underglow, muzzleRing, laserSocket, hatch, barrelZ: 1.3 };
 }
+
+/**
+ * BT-01 Deckhound from the Lux3D part-split GLB (concept → four views → image-to-3D → part split).
+ * The split has no part names, so parts are classified by their bounds:
+ *   barrel = elongated along Z and raised; turret = everything else above the hull deck; hull = the rest.
+ */
+function buildTankFromParts(src: THREE.Object3D): TankRig {
+  const root = new THREE.Group();
+  const model = fitModel(skeletonFree(src), 4.4, 7.6, 3.9, 'contain');
+  root.add(model); root.updateMatrixWorld(true);
+  const total = new THREE.Box3().setFromObject(model);
+  const H = total.max.y;
+  const meshes: { m: THREE.Mesh; b: THREE.Box3 }[] = [];
+  model.traverse((o) => { const m = o as THREE.Mesh; if (m.isMesh) { m.castShadow = m.receiveShadow = true; meshes.push({ m, b: new THREE.Box3().setFromObject(m) }); } });
+  const size = (b: THREE.Box3) => b.getSize(new THREE.Vector3());
+  const barrelMesh = meshes
+    .filter(({ b }) => { const s = size(b); return s.z > 1.6 * s.x && s.z > 2.5 * s.y && b.min.y > H * 0.35; }) // barrel part includes the mantlet, so it is wider than it is tall
+    .sort((a, b) => b.b.max.z - a.b.max.z)[0];
+  const turretMeshes = meshes.filter((x) => x !== barrelMesh && x.b.min.y > H * 0.42);
+  const hull = new THREE.Group(), turret = new THREE.Group(), barrel = new THREE.Group();
+  root.add(hull, turret);
+  // turret pivot: centre of the biggest turret part, on its base
+  const body = turretMeshes.slice().sort((a, b) => size(b.b).lengthSq() - size(a.b).lengthSq())[0]?.b ?? total;
+  const tc = body.getCenter(new THREE.Vector3());
+  turret.position.set(tc.x, body.min.y, tc.z);
+  root.updateMatrixWorld(true);
+  if (barrelMesh) {
+    const bb = barrelMesh.b, bc = bb.getCenter(new THREE.Vector3());
+    barrel.position.copy(turret.worldToLocal(new THREE.Vector3(bc.x, bc.y, bb.min.z)));
+  } else barrel.position.set(0, 0.6, 1.2);
+  turret.add(barrel); root.updateMatrixWorld(true);
+  for (const { m } of meshes) (m === barrelMesh?.m ? barrel : turretMeshes.some((t) => t.m === m) ? turret : hull).attach(m);
+  root.remove(model);
+  const barrelLen = barrelMesh ? size(barrelMesh.b).z : 3;
+  const muzzle = new THREE.Object3D(); muzzle.position.z = barrelLen + 0.2; barrel.add(muzzle);
+  const muzzleRing = glow('#3ee6ff', 4);
+  const ring = new THREE.Mesh(new THREE.TorusGeometry(0.22, 0.06, 10, 24), muzzleRing); ring.position.z = barrelLen; barrel.add(ring);
+  const laserSocket = new THREE.Object3D(); laserSocket.position.set(0, 1.4, -0.4); turret.add(laserSocket);
+  const hatch = new THREE.Group(); hatch.visible = false; turret.add(hatch); // VOLT model arrives with CH_VOLT
+  const underglow = new THREE.PointLight('#3ee6ff', 30, 12, 1.8); underglow.position.y = 0.4; root.add(underglow);
+  return { root, hull, turret, barrel, muzzle, speakers: [], lightBar: [], treads: [], underglow, muzzleRing, laserSocket, hatch, barrelZ: barrel.position.z };
+}
+
+/** Part-split GLBs are static; a plain clone keeps their materials shared. */
+const skeletonFree = (o: THREE.Object3D) => o.clone(true);
 
 // ───────────────────────── enemies ─────────────────────────
 const foam = () => std({ color: '#5a5e68', roughness: 0.95, metalness: 0.05 });

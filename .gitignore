@@ -11,3 +11,4 @@ references/
 .playwright-mcp/
 content/assets.lock.json
 content/concepts/*/urls.json
+content/concepts/*/model.json

@@ -1100,14 +1100,14 @@ export class Game {
     t.root.position.copy(this.pos);
     t.root.rotation.y = this.yaw;
     // suspension wobble on acceleration
-    const accelTilt = clamp((this.speed - (this.lastSpeed ?? 0)) / dt * -0.004, -0.08, 0.08);
+    const accelTilt = dt > 0 ? clamp((this.speed - (this.lastSpeed ?? 0)) / dt * -0.004, -0.08, 0.08) : 0; // dt can be 0 on the first frame
     this.lastSpeed = this.speed;
     t.hull.rotation.x = damp(t.hull.rotation.x, accelTilt, 6, dt);
     t.turret.rotation.y = this.turretYaw - this.yaw;
     t.turret.rotation.x = t.hull.rotation.x;
     this.recoil = damp(this.recoil, 0, 9, dt);
     t.barrel.rotation.x = -this.pitch;
-    t.barrel.position.z = 1.3 - this.recoil * 0.5;
+    t.barrel.position.z = t.barrelZ - this.recoil * 0.5;
     for (const tr of t.treads) tr.offset.y -= this.speed * dt * 0.12;
     t.speakers.forEach((s) => s.scale.setScalar(damp(s.scale.x, 1, 12, dt)));
     const beat = audio().beat();

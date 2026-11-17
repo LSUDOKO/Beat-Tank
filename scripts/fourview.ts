@@ -9,6 +9,7 @@ import 'dotenv/config';
 import { writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { createLux3dClient } from '@manycore/aholo-sdk-lux3d';
+import { waitTask, outputUrls, download } from './lib/aholo';
 import { createAssetClient } from '@manycore/aholo-sdk-asset';
 
 const [id, conceptFile, reuseTask] = process.argv.slice(2);
@@ -18,13 +19,13 @@ const asset = createAssetClient({ region: 'com' });
 
 const concept = (await asset.uploadFile(join(dir, conceptFile))).url;
 const taskId = reuseTask ? Number(reuseTask) : await lux3d.imageToFourView.create({ img: concept });
-const res = await lux3d.tasks.waitFor(taskId, { intervalMs: 6000, timeoutMs: 15 * 60_000 });
+const res = await waitTask(lux3d, taskId, 6000, 15 * 60_000);
 // four-view returns one output whose content is a JSON-encoded array of 4 URLs
-const urls = res.outputs.flatMap((o) => { const c = o.content ?? ''; return c.startsWith('[') ? (JSON.parse(c) as string[]) : [c]; }).filter((c) => c.startsWith('http'));
+const urls = outputUrls(res);
 const names = ['view_front34', 'view_opposite34', 'view_side', 'view_back'];
 await Promise.all(urls.map(async (u, i) => {
   const ext = new URL(u).pathname.match(/\.(png|jpe?g|webp)$/i)?.[1] ?? 'png';
-  writeFileSync(join(dir, `${names[i] ?? `view_${i}`}.${ext}`), Buffer.from(await (await fetch(u)).arrayBuffer()));
+  writeFileSync(join(dir, `${names[i] ?? `view_${i}`}.${ext}`), await download(u));
 }));
 writeFileSync(join(dir, 'urls.json'), JSON.stringify({ at: Date.now(), concept, conceptFile, views: urls }, null, 2));
 console.log(`task ${taskId}: ${urls.length} views saved in ${dir}`);

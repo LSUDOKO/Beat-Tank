@@ -4,6 +4,7 @@
     "neon": "B_BAKERY_neon.glb"
   },
   "B_CAFE": {
+    "grey": "B_CAFE_grey.glb",
     "neon": "B_CAFE_neon.glb"
   },
   "B_CORNER_SHOP": {
@@ -21,5 +22,8 @@
   },
   "P_TANK_TURRET": {
     "neon": "P_TANK_TURRET_neon.glb"
+  },
+  "VH_DECKHOUND": {
+    "parts": "VH_DECKHOUND_parts.glb"
   }
 }

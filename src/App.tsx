@@ -9,7 +9,7 @@ import { Menus } from './ui/Menus';
 
 export let game: Game | null = null;
 
-const EXTRA = ['P_TANK_HULL', 'P_TANK_TURRET', 'B_SILENCER', 'E_DRONE', 'E_MUTE_TANK', 'E_PYLON', 'PR_BARRICADE', 'PU_VINYL', 'PU_REPAIR', 'PU_SUBWOOFER'];
+const EXTRA = ['VH_DECKHOUND', 'P_TANK_HULL', 'P_TANK_TURRET', 'B_SILENCER', 'E_DRONE', 'E_MUTE_TANK', 'E_PYLON', 'PR_BARRICADE', 'PU_VINYL', 'PU_REPAIR', 'PU_SUBWOOFER'];
 
 export default function App() {
   const canvas = useRef<HTMLCanvasElement>(null);

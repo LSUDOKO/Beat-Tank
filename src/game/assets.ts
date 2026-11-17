@@ -7,7 +7,7 @@ import { GLTFLoader, type GLTF } from 'three/examples/jsm/loaders/GLTFLoader.js'
 import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.js';
 import { clone as skeletonClone } from 'three/examples/jsm/utils/SkeletonUtils.js';
 
-export interface ManifestEntry { neon?: string; grey?: string; anim?: string; parts?: string[] }
+export interface ManifestEntry { neon?: string; grey?: string; anim?: string; parts?: string }
 let manifest: Record<string, ManifestEntry> = {};
 const loader = new GLTFLoader().setMeshoptDecoder(MeshoptDecoder);
 const cache = new Map<string, Promise<GLTF | null>>();
@@ -20,7 +20,7 @@ export const hasAsset = (id: string, v: keyof ManifestEntry = 'neon') => !!manif
 
 export function loadGLB(id: string, v: keyof ManifestEntry = 'neon'): Promise<GLTF | null> {
   const file = manifest[id]?.[v];
-  if (!file || Array.isArray(file)) return Promise.resolve(null);
+  if (!file) return Promise.resolve(null);
   const key = `${id}:${v}`;
   if (!cache.has(key)) cache.set(key, loader.loadAsync(`/assets/${file}`).catch((e) => { console.warn('GLB failed', file, e); return null; }));
   return cache.get(key)!;
@@ -28,7 +28,7 @@ export function loadGLB(id: string, v: keyof ManifestEntry = 'neon'): Promise<GL
 
 /** Preload every model referenced by the level so placement is synchronous. */
 export async function preload(ids: string[], onProgress?: (f: number) => void) {
-  const jobs = ids.flatMap((id) => (['neon', 'grey', 'anim'] as const).filter((v) => hasAsset(id, v)).map((v) => [id, v] as const));
+  const jobs = ids.flatMap((id) => (['neon', 'grey', 'anim', 'parts'] as const).filter((v) => hasAsset(id, v)).map((v) => [id, v] as const));
   let done = 0;
   await Promise.all(jobs.map(([id, v]) => loadGLB(id, v).then(() => onProgress?.(++done / Math.max(1, jobs.length)))));
 }
