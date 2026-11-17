@@ -1,0 +1,25 @@
+{
+  "B_BAKERY": {
+    "grey": "B_BAKERY_grey.glb",
+    "neon": "B_BAKERY_neon.glb"
+  },
+  "B_CAFE": {
+    "neon": "B_CAFE_neon.glb"
+  },
+  "B_CORNER_SHOP": {
+    "neon": "B_CORNER_SHOP_neon.glb"
+  },
+  "B_RECORD": {
+    "grey": "B_RECORD_grey.glb",
+    "neon": "B_RECORD_neon.glb"
+  },
+  "B_SILENCER": {
+    "neon": "B_SILENCER_neon.glb"
+  },
+  "P_TANK_HULL": {
+    "neon": "P_TANK_HULL_neon.glb"
+  },
+  "P_TANK_TURRET": {
+    "neon": "P_TANK_TURRET_neon.glb"
+  }
+}
