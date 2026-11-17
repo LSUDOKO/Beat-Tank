@@ -7,3 +7,5 @@ dist/
 assets-raw/
 .DS_Store
 *.log
+references/
+.playwright-mcp/
